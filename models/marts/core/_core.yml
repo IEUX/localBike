@@ -1,0 +1,138 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: "Customer dimension — one row per customer, with a derived full name."
+    columns:
+      - name: customer_id
+        description: Primary key.
+        data_tests: [unique, not_null]
+      - name: full_name
+        description: First and last name concatenated.
+      - name: state
+        description: US state of the customer.
+
+  - name: dim_products
+    description: "Product dimension — one row per product, enriched with brand and category names."
+    columns:
+      - name: product_id
+        description: Primary key.
+        data_tests: [unique, not_null]
+      - name: brand_name
+        description: Brand display name.
+      - name: category_name
+        description: Category display name.
+      - name: list_price
+        description: Catalogue unit price in USD.
+        data_tests: [not_null]
+
+  - name: dim_stores
+    description: "Store dimension — the three physical LocalBike stores."
+    columns:
+      - name: store_id
+        description: Primary key.
+        data_tests: [unique, not_null]
+      - name: store_name
+        description: Store display name.
+        data_tests: [not_null]
+
+  - name: dim_staffs
+    description: "Staff dimension — employees with their store and resolved manager name."
+    columns:
+      - name: staff_id
+        description: Primary key.
+        data_tests: [unique, not_null]
+      - name: store_name
+        description: Name of the store the employee works at.
+      - name: manager_name
+        description: Full name of the employee's manager (null for the top manager).
+
+  - name: dim_dates
+    description: "Date dimension — one row per calendar day across the order history (2016–2018)."
+    columns:
+      - name: date_day
+        description: Calendar date (primary key).
+        data_tests: [unique, not_null]
+      - name: year
+        description: Calendar year.
+      - name: month
+        description: Month number (1–12).
+      - name: month_name
+        description: Month name (e.g. January).
+
+  - name: fct_order_items
+    description: >
+      Revenue fact at order-line grain (incremental). One row per order line with a
+      surrogate key and foreign keys to every conformed dimension.
+    columns:
+      - name: order_item_key
+        description: Surrogate primary key — hash of (order_id, item_id).
+        data_tests: [unique, not_null]
+      - name: customer_id
+        description: FK to dim_customers.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_id
+      - name: product_id
+        description: FK to dim_products.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_products')
+                field: product_id
+      - name: store_id
+        description: FK to dim_stores.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_stores')
+                field: store_id
+      - name: staff_id
+        description: FK to dim_staffs.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_staffs')
+                field: staff_id
+      - name: net_revenue
+        description: "{{ doc('net_revenue') }}"
+        data_tests: [not_null]
+
+  - name: fct_orders
+    description: >
+      Order fact at order-header grain. One row per order with status, line rollups
+      and shipping-performance measures.
+    columns:
+      - name: order_id
+        description: Primary key.
+        data_tests: [unique, not_null]
+      - name: customer_id
+        description: FK to dim_customers.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_id
+      - name: store_id
+        description: FK to dim_stores.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_stores')
+                field: store_id
+      - name: order_status_code
+        description: "{{ doc('order_status_code') }}"
+        data_tests: [not_null]
+      - name: order_total
+        description: Sum of the order's line-item net revenue.
+        data_tests: [not_null]
+      - name: shipped_on_time
+        description: True when the order shipped on or before its required date (null if unshipped).

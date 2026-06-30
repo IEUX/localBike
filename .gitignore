@@ -4,3 +4,12 @@ target/
 dbt_packages/
 logs/
 dbt_internal_packages/
+
+# secrets — local connection profile and raw credentials, never commit
+profiles.yml
+supabase.txt
+.user.yml
+Projet Final - LocalBike.pdf
+
+# local python env for dbt-core (fusion can't do postgres)
+.venv/

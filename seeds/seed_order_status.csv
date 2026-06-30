@@ -1,0 +1,5 @@
+status_code,status_name,is_fulfilled
+1,Pending,false
+2,Processing,false
+3,Rejected,false
+4,Completed,true

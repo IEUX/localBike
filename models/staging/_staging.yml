@@ -1,0 +1,237 @@
+version: 2
+
+models:
+  - name: stg_brands
+    description: "One row per bike brand. Cleaned 1:1 view over `bikestores.brands`."
+    columns:
+      - name: brand_id
+        description: Primary key — brand identifier.
+        data_tests: [unique, not_null]
+      - name: brand_name
+        description: Brand display name.
+        data_tests: [not_null]
+
+  - name: stg_categories
+    description: "One row per product category. Cleaned 1:1 view over `bikestores.categories`."
+    columns:
+      - name: category_id
+        description: Primary key — category identifier.
+        data_tests: [unique, not_null]
+      - name: category_name
+        description: Category display name.
+        data_tests: [not_null]
+
+  - name: stg_products
+    description: "Product catalogue, one row per product."
+    columns:
+      - name: product_id
+        description: Primary key — product identifier.
+        data_tests: [unique, not_null]
+      - name: product_name
+        description: Product display name.
+        data_tests: [not_null]
+      - name: brand_id
+        description: FK to stg_brands.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_brands')
+                field: brand_id
+      - name: category_id
+        description: FK to stg_categories.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_categories')
+                field: category_id
+      - name: model_year
+        description: Model year of the product.
+      - name: list_price
+        description: Catalogue unit price in USD.
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: false
+
+  - name: stg_stocks
+    description: "On-hand inventory, grain = store × product."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [store_id, product_id]
+    columns:
+      - name: store_id
+        description: FK to stg_stores.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_stores')
+                field: store_id
+      - name: product_id
+        description: FK to stg_products.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_products')
+                field: product_id
+      - name: quantity
+        description: Units currently on hand at this store for this product.
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+  - name: stg_customers
+    description: "Retail customers, one row per customer."
+    columns:
+      - name: customer_id
+        description: Primary key — customer identifier.
+        data_tests: [unique, not_null]
+      - name: first_name
+        description: Customer first name.
+      - name: last_name
+        description: Customer last name.
+      - name: email
+        description: Contact email.
+      - name: city
+        description: Billing city.
+      - name: state
+        description: US state code.
+
+  - name: stg_stores
+    description: "Physical stores (3 locations), one row per store."
+    columns:
+      - name: store_id
+        description: Primary key — store identifier.
+        data_tests: [unique, not_null]
+      - name: store_name
+        description: Store display name.
+        data_tests: [not_null]
+      - name: state
+        description: US state of the store.
+
+  - name: stg_staffs
+    description: "Store employees with a self-referencing manager hierarchy."
+    columns:
+      - name: staff_id
+        description: Primary key — staff identifier.
+        data_tests: [unique, not_null]
+      - name: is_active
+        description: Whether the employee is currently active (source `active` = 1).
+        data_tests: [not_null]
+      - name: store_id
+        description: FK to stg_stores — the employee's store.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_stores')
+                field: store_id
+      - name: manager_id
+        description: Self FK to stg_staffs — the employee's manager (null for the top manager).
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_staffs')
+                field: staff_id
+
+  - name: stg_orders
+    description: "Order headers, one row per order. Cleans the text `shipped_date`/status code."
+    columns:
+      - name: order_id
+        description: Primary key — order identifier.
+        data_tests: [unique, not_null]
+      - name: customer_id
+        description: FK to stg_customers.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
+      - name: store_id
+        description: FK to stg_stores.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_stores')
+                field: store_id
+      - name: staff_id
+        description: FK to stg_staffs — the salesperson.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_staffs')
+                field: staff_id
+      - name: order_status_code
+        description: "Order status code: 1 Pending, 2 Processing, 3 Rejected, 4 Completed."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4]
+      - name: order_date
+        description: Date the order was placed.
+        data_tests: [not_null]
+      - name: required_date
+        description: Date the customer needed the order by.
+      - name: shipped_date
+        description: Date the order shipped; null when not yet shipped.
+
+  - name: stg_order_items
+    description: "Order line items, grain = order × line. Source of the revenue fact."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [order_id, item_id]
+    columns:
+      - name: order_id
+        description: FK to stg_orders.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_id
+      - name: item_id
+        description: Line number within the order.
+        data_tests: [not_null]
+      - name: product_id
+        description: FK to stg_products.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_products')
+                field: product_id
+      - name: quantity
+        description: Units ordered on this line.
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: false
+      - name: list_price
+        description: Unit price charged on this line (USD).
+        data_tests: [not_null]
+      - name: discount
+        description: Discount fraction applied to the line (0–1).
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+      - name: net_revenue
+        description: "Line revenue net of discount: quantity × list_price × (1 − discount)."
+        data_tests: [not_null]

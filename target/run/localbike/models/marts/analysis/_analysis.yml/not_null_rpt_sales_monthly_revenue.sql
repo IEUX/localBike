@@ -1,0 +1,25 @@
+
+    
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select revenue
+from "neondb"."dbt_localbike"."rpt_sales_monthly"
+where revenue is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test

@@ -1,0 +1,17 @@
+version: 2
+
+seeds:
+  - name: seed_order_status
+    description: >
+      Lookup mapping the numeric `order_status` code from the source orders table to
+      a human-readable label, plus a flag marking which statuses represent a fulfilled order.
+    columns:
+      - name: status_code
+        description: "{{ doc('order_status_code') }}"
+        data_tests: [unique, not_null]
+      - name: status_name
+        description: Human-readable status label.
+        data_tests: [not_null]
+      - name: is_fulfilled
+        description: True when the status represents a completed/fulfilled order.
+        data_tests: [not_null]

@@ -1,0 +1,29 @@
+version: 2
+
+sources:
+  - name: bikestores
+    description: >
+      Raw LocalBike (BikeStores) operational data, loaded as-is from the source
+      Postgres database. Two business domains live here: **Sales**
+      (customers, orders, order_items, staffs, stores) and **Production**
+      (products, categories, brands, stocks).
+    schema: public
+    tables:
+      - name: brands
+        description: Bike brands sold by LocalBike.
+      - name: categories
+        description: Product categories (e.g. road, mountain, children bikes).
+      - name: products
+        description: Product catalogue with brand, category, model year and list price.
+      - name: stocks
+        description: On-hand quantity per store and product (grain = store × product).
+      - name: customers
+        description: Retail customers with contact details and US address.
+      - name: stores
+        description: The three physical stores (Santa Cruz CA, Baldwin NY, Rowlett TX).
+      - name: staffs
+        description: Store employees, with self-referencing manager hierarchy.
+      - name: orders
+        description: Customer orders header (one row per order).
+      - name: order_items
+        description: Order line items (grain = order × line); the revenue fact source.

@@ -1,0 +1,12 @@
+
+    
+    
+    truncate table "neondb"."dbt_localbike_seed"."seed_order_status";
+    -- dbt seed --
+    
+          insert into "neondb"."dbt_localbike_seed"."seed_order_status" ("status_code", "status_name", "is_fulfilled") values
+          (%s,%s,%s),(%s,%s,%s),(%s,%s,%s),(%s,%s,%s)
+      
+
+;
+  

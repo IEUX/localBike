@@ -1,0 +1,105 @@
+version: 2
+
+models:
+  - name: rpt_sales_monthly
+    description: "Axis 1 — Revenue/sales over time. Monthly orders, units, revenue and AOV."
+    columns:
+      - name: order_month
+        description: First day of the calendar month (grain).
+        data_tests: [unique, not_null]
+      - name: revenue
+        description: "{{ doc('net_revenue') }} — summed over the month."
+        data_tests: [not_null]
+
+  - name: rpt_product_performance
+    description: "Axis 2 — Product performance. Units, revenue, orders, avg discount and revenue rank per product."
+    columns:
+      - name: product_id
+        description: Product (grain).
+        data_tests: [unique, not_null]
+      - name: revenue
+        description: Net revenue attributed to the product.
+        data_tests: [not_null]
+      - name: revenue_rank
+        description: Dense rank of the product by revenue (1 = highest).
+        data_tests: [unique, not_null]
+
+  - name: rpt_customer_value
+    description: "Axis 3 — Customer value. Orders, lifetime revenue, AOV and repeat flag per customer."
+    columns:
+      - name: customer_id
+        description: Customer (grain).
+        data_tests: [unique, not_null]
+      - name: total_revenue
+        description: Lifetime net revenue from the customer.
+        data_tests: [not_null]
+
+  - name: rpt_store_performance
+    description: "Axis 4a — Store performance. Orders, customers, units and revenue per store."
+    columns:
+      - name: store_id
+        description: Store (grain).
+        data_tests: [unique, not_null]
+      - name: revenue
+        description: Net revenue for the store.
+        data_tests: [not_null]
+
+  - name: rpt_staff_performance
+    description: "Axis 4b — Staff performance. Orders, units, revenue and AOV per salesperson."
+    columns:
+      - name: staff_id
+        description: Staff member (grain).
+        data_tests: [unique, not_null]
+      - name: revenue
+        description: Net revenue attributed to the salesperson.
+        data_tests: [not_null]
+
+  - name: rpt_inventory_status
+    description: "Axis 5 — Inventory. On-hand vs sold per store × product, with stock-level band and dead-stock flag."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [store_id, product_id]
+    columns:
+      - name: units_on_hand
+        description: Current quantity on hand at the store for the product.
+        data_tests: [not_null]
+      - name: stock_level
+        description: "Band: Out of stock / Low (<10) / OK."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Out of stock', 'Low', 'OK']
+
+  - name: rpt_order_fulfillment
+    description: "Axis 6 — Fulfillment. Status mix with revenue, shipped count, avg days-to-ship and on-time rate."
+    columns:
+      - name: order_status
+        description: "{{ doc('order_status_code') }}"
+        data_tests: [unique, not_null]
+      - name: num_orders
+        description: Number of orders in the status.
+        data_tests: [not_null]
+
+exposures:
+  - name: operations_dashboard
+    type: dashboard
+    maturity: high
+    label: "LocalBike — Operations Dashboard"
+    description: >
+      The operations team's dashboard for optimising sales and maximising revenue.
+      Surfaces the six analysis axes (sales trend, product & inventory, customer value,
+      store & staff performance, fulfillment). These reporting models are its data sources,
+      so their tests gate the dashboard's data quality.
+    url: https://example.com/localbike/operations
+    owner:
+      name: Local Bike Data Team
+      email: data@localbike.example
+    depends_on:
+      - ref('rpt_sales_monthly')
+      - ref('rpt_product_performance')
+      - ref('rpt_customer_value')
+      - ref('rpt_store_performance')
+      - ref('rpt_staff_performance')
+      - ref('rpt_inventory_status')
+      - ref('rpt_order_fulfillment')

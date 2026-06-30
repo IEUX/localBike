@@ -179,6 +179,7 @@ models:
           - accepted_values:
               arguments:
                 values: [1, 2, 3, 4]
+                quote: false  # order_status_code is an int; unquoted so BigQuery doesn't compare INT64 to STRING
       - name: order_date
         description: Date the order was placed.
         data_tests: [not_null]

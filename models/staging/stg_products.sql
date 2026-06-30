@@ -9,7 +9,7 @@ renamed as (
         cast(brand_id as {{ dbt.type_int() }})              as brand_id,
         cast(category_id as {{ dbt.type_int() }})           as category_id,
         cast(model_year as {{ dbt.type_int() }})            as model_year,
-        cast(list_price as numeric(10, 2))                  as list_price
+        cast(list_price as numeric)                         as list_price
     from source
 )
 

@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: int_order_items_enriched
+    description: >
+      Order-line grain. Each order line joined to its order context (date, store,
+      staff, customer, status) and product context (brand, category). Ephemeral —
+      compiled inline into downstream marts.
+    columns:
+      - name: net_revenue
+        description: "{{ doc('net_revenue') }}"
+
+  - name: int_orders_enriched
+    description: >
+      Order-header grain. Adds the human-readable status, line rollups
+      (total / units / line count) and shipping-performance fields. Ephemeral.
+    columns:
+      - name: order_status_code
+        description: "{{ doc('order_status_code') }}"
+      - name: order_total
+        description: Sum of the order's line-item net revenue.

@@ -4,12 +4,12 @@ with source as (
 
 renamed as (
     select
-        product_id::int            as product_id,
-        trim(product_name)::text   as product_name,
-        brand_id::int              as brand_id,
-        category_id::int           as category_id,
-        model_year::int            as model_year,
-        list_price::numeric(10, 2) as list_price
+        cast(product_id as {{ dbt.type_int() }})            as product_id,
+        cast(trim(product_name) as {{ dbt.type_string() }}) as product_name,
+        cast(brand_id as {{ dbt.type_int() }})              as brand_id,
+        cast(category_id as {{ dbt.type_int() }})           as category_id,
+        cast(model_year as {{ dbt.type_int() }})            as model_year,
+        cast(list_price as numeric(10, 2))                  as list_price
     from source
 )
 

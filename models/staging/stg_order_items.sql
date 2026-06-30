@@ -4,12 +4,12 @@ with source as (
 
 renamed as (
     select
-        order_id::int             as order_id,
-        item_id::int              as item_id,
-        product_id::int           as product_id,
-        quantity::int             as quantity,
-        list_price::numeric(10, 2) as list_price,
-        discount::numeric(4, 2)    as discount,
+        cast(order_id as {{ dbt.type_int() }})   as order_id,
+        cast(item_id as {{ dbt.type_int() }})    as item_id,
+        cast(product_id as {{ dbt.type_int() }}) as product_id,
+        cast(quantity as {{ dbt.type_int() }})   as quantity,
+        cast(list_price as numeric(10, 2))       as list_price,
+        cast(discount as numeric(4, 2))          as discount,
         -- net revenue for the line (formula centralised in the macro)
         {{ calculate_net_revenue('quantity', 'list_price', 'discount') }} as net_revenue
     from source

@@ -4,9 +4,9 @@ with source as (
 
 renamed as (
     select
-        store_id::int   as store_id,
-        product_id::int as product_id,
-        quantity::int   as quantity
+        cast(store_id as {{ dbt.type_int() }})   as store_id,
+        cast(product_id as {{ dbt.type_int() }}) as product_id,
+        cast(quantity as {{ dbt.type_int() }})   as quantity
     from source
 )
 

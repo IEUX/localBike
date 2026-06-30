@@ -4,8 +4,8 @@ with source as (
 
 renamed as (
     select
-        brand_id::int          as brand_id,
-        trim(brand_name)::text as brand_name
+        cast(brand_id as {{ dbt.type_int() }})            as brand_id,
+        cast(trim(brand_name) as {{ dbt.type_string() }}) as brand_name
     from source
 )
 

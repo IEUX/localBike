@@ -4,8 +4,8 @@ with source as (
 
 renamed as (
     select
-        category_id::int          as category_id,
-        trim(category_name)::text as category_name
+        cast(category_id as {{ dbt.type_int() }})            as category_id,
+        cast(trim(category_name) as {{ dbt.type_string() }}) as category_name
     from source
 )
 

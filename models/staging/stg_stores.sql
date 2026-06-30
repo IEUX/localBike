@@ -4,14 +4,14 @@ with source as (
 
 renamed as (
     select
-        store_id::int          as store_id,
-        trim(store_name)::text as store_name,
-        trim(phone)::text      as phone,
-        trim(email)::text      as email,
-        trim(street)::text     as street,
-        trim(city)::text       as city,
-        trim(state)::text      as state,
-        zip_code::int          as zip_code
+        cast(store_id as {{ dbt.type_int() }})            as store_id,
+        cast(trim(store_name) as {{ dbt.type_string() }}) as store_name,
+        cast(trim(phone) as {{ dbt.type_string() }})      as phone,
+        cast(trim(email) as {{ dbt.type_string() }})      as email,
+        cast(trim(street) as {{ dbt.type_string() }})     as street,
+        cast(trim(city) as {{ dbt.type_string() }})       as city,
+        cast(trim(state) as {{ dbt.type_string() }})      as state,
+        cast(zip_code as {{ dbt.type_int() }})            as zip_code
     from source
 )
 
